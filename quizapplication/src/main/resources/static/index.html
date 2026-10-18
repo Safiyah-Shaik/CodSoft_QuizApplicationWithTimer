@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizMaster | Timed Quiz</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #10152f, #28265a, #533b82);
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+        }
+
+        .app {
+            width: 100%;
+            max-width: 720px;
+            background: rgba(255, 255, 255, 0.09);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+        }
+
+        .brand {
+            color: #c5b8ff;
+            font-size: 14px;
+            letter-spacing: 2px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #d0cde5;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .info {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+
+        .info div {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+            flex: 1;
+        }
+
+        .timer {
+            color: #ffe08a;
+            font-weight: bold;
+        }
+
+        .progress-track {
+            height: 7px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .progress {
+            height: 100%;
+            width: 0;
+            background: #a99aff;
+            transition: width 0.3s;
+        }
+
+        #question {
+            font-size: 21px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .option {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 15px;
+            margin: 12px 0;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.07);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .option:hover:not(:disabled) {
+            background: rgba(169, 154, 255, 0.2);
+            border-color: #b8aaff;
+        }
+
+        .option.selected {
+            background: #51458e;
+            border-color: #c5b8ff;
+        }
+
+        .option:disabled {
+            cursor: default;
+            opacity: 0.85;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .primary, .secondary {
+            padding: 13px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .primary {
+            background: #b8aaff;
+            color: #19152f;
+        }
+
+        .primary:hover {
+            background: #d1c8ff;
+        }
+
+        .secondary {
+            background: rgba(255, 255, 255, 0.12);
+            color: white;
+        }
+
+        .primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #feedback {
+            color: #ffe08a;
+            min-height: 22px;
+            margin-top: 12px;
+        }
+
+        .result-score {
+            font-size: 52px;
+            font-weight: bold;
+            color: #c5b8ff;
+            margin: 22px 0;
+        }
+
+        .review-item {
+            padding: 14px;
+            margin: 12px 0;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            line-height: 1.6;
+        }
+
+        @media (max-width: 500px) {
+            .app {
+                padding: 22px;
+            }
+
+            h1 {
+                font-size: 27px;
+            }
+
+            .info {
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+<main class="app">
+    <div class="brand">CODSOFT INTERNSHIP PROJECT</div>
+    <h1>QuizMaster ✨</h1>
+    <p class="subtitle">Test your knowledge, beat the clock, and discover your score.</p>
+
+    <section id="quizScreen">
+        <div class="info">
+            <div>Question<br><strong id="questionCount">1 / 5</strong></div>
+            <div>Time left<br><strong class="timer" id="timer">15s</strong></div>
+            <div>Score<br><strong id="score">0</strong></div>
+        </div>
+
+        <div class="progress-track">
+            <div class="progress" id="progress"></div>
+        </div>
+
+        <h2 id="question">Loading question...</h2>
+        <div id="options"></div>
+        <p id="feedback" aria-live="polite"></p>
+
+        <div class="actions">
+            <button class="secondary" id="restartBtn">Restart</button>
+            <button class="primary" id="nextBtn" disabled>Next Question →</button>
+        </div>
+    </section>
+
+    <section id="resultScreen" class="hidden">
+        <h2>Quiz Completed! 🎉</h2>
+        <p class="subtitle">Here is your final result.</p>
+        <div class="result-score" id="finalScore">0 / 5</div>
+        <p id="resultMessage"></p>
+        <div id="review"></div>
+        <div class="actions">
+            <button class="primary" id="playAgainBtn">Play Again ↻</button>
+        </div>
+    </section>
+</main>
+
+<script>
+    const questions = [
+        {
+            question: "Which language is primarily used to build this application's backend?",
+            options: ["Python", "Java", "C++", "Ruby"],
+            answer: 1
+        },
+        {
+            question: "Which keyword is used to inherit a class in Java?",
+            options: ["implements", "inherits", "extends", "super"],
+            answer: 2
+        },
+        {
+            question: "Which method is the entry point of a standard Java application?",
+            options: ["start()", "run()", "init()", "main()"],
+            answer: 3
+        },
+        {
+            question: "Which data type stores true or false values in Java?",
+            options: ["int", "boolean", "char", "String"],
+            answer: 1
+        },
+        {
+            question: "Which framework is used to build this web application?",
+            options: ["Django", "React only", "Spring Boot", "Flask"],
+            answer: 2
+        }
+    ];
+
+    const TIME_LIMIT = 15;
+    let currentQuestion = 0;
+    let score = 0;
+    let timeLeft = TIME_LIMIT;
+    let timerId = null;
+    let selectedAnswer = null;
+    let answers = [];
+    let questionLocked = false;
+
+    const $ = id => document.getElementById(id);
+
+    function startQuiz() {
+        clearInterval(timerId);
+        currentQuestion = 0;
+        score = 0;
+        answers = [];
+        $("score").textContent = score;
+        $("quizScreen").classList.remove("hidden");
+        $("resultScreen").classList.add("hidden");
+        showQuestion();
+    }
+
+    function showQuestion() {
+        clearInterval(timerId);
+        selectedAnswer = null;
+        questionLocked = false;
+        timeLeft = TIME_LIMIT;
+
+        const q = questions[currentQuestion];
+        $("questionCount").textContent =
+            `${currentQuestion + 1} / ${questions.length}`;
+        $("question").textContent = q.question;
+        $("timer").textContent = `${timeLeft}s`;
+        $("feedback").textContent = "";
+        $("progress").style.width =
+            `${(currentQuestion / questions.length) * 100}%`;
+        $("nextBtn").disabled = true;
+        $("nextBtn").textContent =
+            currentQuestion === questions.length - 1 ? "View Results →" : "Next Question →";
+
+        $("options").innerHTML = "";
+
+        q.options.forEach((option, index) => {
+            const button = document.createElement("button");
+            button.className = "option";
+            button.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
+            button.addEventListener("click", () => selectAnswer(index));
+            $("options").appendChild(button);
+        });
+
+        timerId = setInterval(() => {
+            timeLeft--;
+            $("timer").textContent = `${timeLeft}s`;
+
+            if (timeLeft <= 5) {
+                $("timer").style.color = "#ff9292";
+            } else {
+                $("timer").style.color = "#ffe08a";
+            }
+
+            if (timeLeft <= 0) {
+                clearInterval(timerId);
+                lockQuestion(true);
+            }
+        }, 1000);
+    }
+
+    function selectAnswer(index) {
+        if (questionLocked) return;
+
+        selectedAnswer = index;
+        document.querySelectorAll(".option").forEach((button, i) => {
+            button.classList.toggle("selected", i === index);
+        });
+
+        $("nextBtn").disabled = false;
+        $("feedback").textContent = "Answer selected. Click Next Question to submit.";
+    }
+
+    function lockQuestion(timedOut = false) {
+        if (questionLocked) return;
+
+        questionLocked = true;
+        clearInterval(timerId);
+
+        const q = questions[currentQuestion];
+        const correct = selectedAnswer === q.answer;
+
+        if (correct) score++;
+
+        answers.push({
+            question: q.question,
+            chosen: selectedAnswer === null ? "No answer (time expired)" : q.options[selectedAnswer],
+            correct: q.options[q.answer],
+            isCorrect: correct
+        });
+
+        $("score").textContent = score;
+
+        document.querySelectorAll(".option").forEach((button, index) => {
+            button.disabled = true;
+            if (index === q.answer) {
+                button.style.borderColor = "#70e1a1";
+                button.style.background = "rgba(40, 180, 100, 0.2)";
+            } else if (index === selectedAnswer) {
+                button.style.borderColor = "#ff9292";
+            }
+        });
+
+        $("feedback").textContent = timedOut
+            ? `Time is up! Correct answer: ${q.options[q.answer]}`
+            : correct
+                ? "Correct answer! Great job 🎉"
+                : `Not quite. Correct answer: ${q.options[q.answer]}`;
+
+        $("nextBtn").disabled = false;
+    }
+
+    $("nextBtn").addEventListener("click", () => {
+        if (!questionLocked) {
+            if (selectedAnswer === null) {
+                $("feedback").textContent = "Please select an option first.";
+                return;
+            }
+            lockQuestion(false);
+            return;
+        }
+
+        if (currentQuestion < questions.length - 1) {
+            currentQuestion++;
+            showQuestion();
+        } else {
+            showResults();
+        }
+    });
+
+    function showResults() {
+        clearInterval(timerId);
+        $("quizScreen").classList.add("hidden");
+        $("resultScreen").classList.remove("hidden");
+        $("finalScore").textContent = `${score} / ${questions.length}`;
+        $("resultMessage").textContent =
+            score === questions.length
+                ? "Perfect score! Outstanding work!"
+                : score >= 3
+                    ? "Great effort! Keep learning and improving."
+                    : "Good attempt! Review the answers and try again.";
+
+        $("progress").style.width = "100%";
+        $("review").innerHTML = "";
+
+        answers.forEach((item, index) => {
+            const div = document.createElement("div");
+            div.className = "review-item";
+
+            const heading = document.createElement("strong");
+            heading.textContent = `${index + 1}. ${item.question}`;
+
+            const chosen = document.createElement("p");
+            chosen.textContent = `Your answer: ${item.chosen}`;
+
+            const correct = document.createElement("p");
+            correct.textContent = `Correct answer: ${item.correct}`;
+
+            const status = document.createElement("p");
+            status.textContent = item.isCorrect ? "✓ Correct" : "✗ Incorrect";
+            status.style.color = item.isCorrect ? "#70e1a1" : "#ff9292";
+
+            div.append(heading, chosen, correct, status);
+            $("review").appendChild(div);
+        });
+    }
+
+    $("restartBtn").addEventListener("click", startQuiz);
+    $("playAgainBtn").addEventListener("click", startQuiz);
+
+    startQuiz();
+</script>
+</body>
+</html>
